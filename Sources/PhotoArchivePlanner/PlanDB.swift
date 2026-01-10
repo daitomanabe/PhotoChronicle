@@ -627,4 +627,19 @@ final class PlanDB {
         }
         return nil
     }
+    func listTables() throws -> [String] {
+        let sql = "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;"
+        var stmt: OpaquePointer? = nil
+        guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
+            return []
+        }
+        defer { sqlite3_finalize(stmt) }
+
+        var tables: [String] = []
+        while sqlite3_step(stmt) == SQLITE_ROW {
+            let name = String(cString: sqlite3_column_text(stmt, 0))
+            tables.append(name)
+        }
+        return tables
+    }
 }

@@ -81,7 +81,23 @@ final class Phase2Executor: ObservableObject {
     // This runs on background thread (detached task)
     nonisolated private func runExecutionLoop(dbURL: URL) async throws {
         // Create DB connection specific to this background thread
+        log("Phase 2 DB Connection: \(dbURL.path)")
+        if let attr = try? FileManager.default.attributesOfItem(atPath: dbURL.path),
+            let size = attr[.size] as? Int64
+        {
+            log("DB File Size: \(size) bytes")
+        }
+
         let db = try PlanDB(dbURL: dbURL)
+
+        // Debug: List tables
+        let tables = try db.listTables()
+        log("DB Tables: \(tables.joined(separator: ", "))")
+
+        if !tables.contains("ops") {
+            log("CRITICAL ERROR: 'ops' table missing! Tables found: \(tables)")
+            throw Phase2Error.planNotFrozen("Table 'ops' missing. Phase 1 likely failed.")
+        }
 
         // 0. Auto-recover stale RUNNING ops
         let recovered = try db.resetStaleRunningOps()
