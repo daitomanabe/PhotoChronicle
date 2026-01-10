@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:photo_archive_planner_ui_swiftui}",
+            "name": "Debug PhotoArchivePlanner",
+            "program": "${workspaceFolder:photo_archive_planner_ui_swiftui}/.build/debug/PhotoArchivePlanner",
+            "preLaunchTask": "swift: Build Debug PhotoArchivePlanner"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:photo_archive_planner_ui_swiftui}",
+            "name": "Release PhotoArchivePlanner",
+            "program": "${workspaceFolder:photo_archive_planner_ui_swiftui}/.build/release/PhotoArchivePlanner",
+            "preLaunchTask": "swift: Build Release PhotoArchivePlanner"
+        }
+    ]
+}

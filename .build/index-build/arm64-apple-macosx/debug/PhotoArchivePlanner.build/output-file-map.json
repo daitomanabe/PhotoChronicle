@@ -1,0 +1,89 @@
+{
+  "": {
+    "swift-dependencies": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/master.swiftdeps"
+  },
+  "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/Sources/PhotoArchivePlanner/ContentView.swift": {
+    "dependencies": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/ContentView.d",
+    "object": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/ContentView.swift.o",
+    "swiftmodule": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/ContentView~partial.swiftmodule",
+    "swift-dependencies": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/ContentView.swiftdeps",
+    "diagnostics": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/ContentView.dia"
+  },
+  "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/Sources/PhotoArchivePlanner/DropUtil.swift": {
+    "dependencies": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/DropUtil.d",
+    "object": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/DropUtil.swift.o",
+    "swiftmodule": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/DropUtil~partial.swiftmodule",
+    "swift-dependencies": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/DropUtil.swiftdeps",
+    "diagnostics": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/DropUtil.dia"
+  },
+  "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/Sources/PhotoArchivePlanner/ExifDateExtractor.swift": {
+    "dependencies": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/ExifDateExtractor.d",
+    "object": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/ExifDateExtractor.swift.o",
+    "swiftmodule": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/ExifDateExtractor~partial.swiftmodule",
+    "swift-dependencies": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/ExifDateExtractor.swiftdeps",
+    "diagnostics": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/ExifDateExtractor.dia"
+  },
+  "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/Sources/PhotoArchivePlanner/Models.swift": {
+    "dependencies": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/Models.d",
+    "object": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/Models.swift.o",
+    "swiftmodule": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/Models~partial.swiftmodule",
+    "swift-dependencies": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/Models.swiftdeps",
+    "diagnostics": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/Models.dia"
+  },
+  "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/Sources/PhotoArchivePlanner/Phase2Executor.swift": {
+    "dependencies": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/Phase2Executor.d",
+    "object": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/Phase2Executor.swift.o",
+    "swiftmodule": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/Phase2Executor~partial.swiftmodule",
+    "swift-dependencies": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/Phase2Executor.swiftdeps",
+    "diagnostics": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/Phase2Executor.dia"
+  },
+  "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/Sources/PhotoArchivePlanner/PhotoArchivePlannerApp.swift": {
+    "dependencies": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/PhotoArchivePlannerApp.d",
+    "object": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/PhotoArchivePlannerApp.swift.o",
+    "swiftmodule": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/PhotoArchivePlannerApp~partial.swiftmodule",
+    "swift-dependencies": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/PhotoArchivePlannerApp.swiftdeps",
+    "diagnostics": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/PhotoArchivePlannerApp.dia"
+  },
+  "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/Sources/PhotoArchivePlanner/PlanDB.swift": {
+    "dependencies": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/PlanDB.d",
+    "object": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/PlanDB.swift.o",
+    "swiftmodule": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/PlanDB~partial.swiftmodule",
+    "swift-dependencies": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/PlanDB.swiftdeps",
+    "diagnostics": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/PlanDB.dia"
+  },
+  "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/Sources/PhotoArchivePlanner/PlanSchemaV4.swift": {
+    "dependencies": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/PlanSchemaV4.d",
+    "object": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/PlanSchemaV4.swift.o",
+    "swiftmodule": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/PlanSchemaV4~partial.swiftmodule",
+    "swift-dependencies": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/PlanSchemaV4.swiftdeps",
+    "diagnostics": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/PlanSchemaV4.dia"
+  },
+  "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/Sources/PhotoArchivePlanner/PlannerEngine.swift": {
+    "dependencies": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/PlannerEngine.d",
+    "object": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/PlannerEngine.swift.o",
+    "swiftmodule": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/PlannerEngine~partial.swiftmodule",
+    "swift-dependencies": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/PlannerEngine.swiftdeps",
+    "diagnostics": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/PlannerEngine.dia"
+  },
+  "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/Sources/PhotoArchivePlanner/PlannerViewModel.swift": {
+    "dependencies": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/PlannerViewModel.d",
+    "object": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/PlannerViewModel.swift.o",
+    "swiftmodule": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/PlannerViewModel~partial.swiftmodule",
+    "swift-dependencies": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/PlannerViewModel.swiftdeps",
+    "diagnostics": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/PlannerViewModel.dia"
+  },
+  "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/Sources/PhotoArchivePlanner/SHA256Hasher.swift": {
+    "dependencies": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/SHA256Hasher.d",
+    "object": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/SHA256Hasher.swift.o",
+    "swiftmodule": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/SHA256Hasher~partial.swiftmodule",
+    "swift-dependencies": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/SHA256Hasher.swiftdeps",
+    "diagnostics": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/SHA256Hasher.dia"
+  },
+  "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/Sources/PhotoArchivePlanner/VolumeResolver.swift": {
+    "dependencies": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/VolumeResolver.d",
+    "object": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/VolumeResolver.swift.o",
+    "swiftmodule": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/VolumeResolver~partial.swiftmodule",
+    "swift-dependencies": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/VolumeResolver.swiftdeps",
+    "diagnostics": "/Users/rhizomacbookproretina30/Rhizomatiks Dropbox/daito manabe/projects/photo_merge/photo_archive_planner_ui_swiftui/.build/index-build/arm64-apple-macosx/debug/PhotoArchivePlanner.build/VolumeResolver.dia"
+  }
+}
