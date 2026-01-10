@@ -14,8 +14,8 @@ struct PlannerEngine {
 
     // Candidate extensions (images only)
     private let imageExts: Set<String> = [
-        "jpg","jpeg","heic","heif","png","tif","tiff","gif","bmp","webp",
-        "dng","cr2","cr3","nef","arw","raf","orf","rw2"
+        "jpg", "jpeg", "heic", "heif", "png", "tif", "tiff", "gif", "bmp", "webp",
+        "dng", "cr2", "cr3", "nef", "arw", "raf", "orf", "rw2",
     ]
 
     struct ScanResult: Sendable {
@@ -39,17 +39,18 @@ struct PlannerEngine {
     ) async throws {
 
         var prog = PlannerProgress(stage: .scanning)
-        
+
         // If append, load existing stats for progress baseline?
         // Actually the view model loads it. Here we might start with 0 processed in this run.
         // But let's just emit initial state.
-        
+
         await progress(prog)
 
-        try FileManager.default.createDirectory(at: dbURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(
+            at: dbURL.deletingLastPathComponent(), withIntermediateDirectories: true)
 
         let db = try PlanDB(dbURL: dbURL)
-        
+
         if mode == .new {
             await log("Mode: NEW. Resetting DB...")
             try db.dropAllTables()
@@ -64,10 +65,14 @@ struct PlannerEngine {
 
         // DEST info
         guard let destVol = VolumeResolver.volumeInfo(for: destFolder) else {
-            throw NSError(domain: "PlannerEngine", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to resolve destination volume info"])
+            throw NSError(
+                domain: "PlannerEngine", code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "Failed to resolve destination volume info"])
         }
-        let destRel = VolumeResolver.destRootRelpath(destFolder: destFolder, volumeRoot: destVol.rootURL)
-        try db.setPlanDest(destVolumeUUID: destVol.uuid, destLabel: destVol.name, destRootRelpath: destRel)
+        let destRel = VolumeResolver.destRootRelpath(
+            destFolder: destFolder, volumeRoot: destVol.rootURL)
+        try db.setPlanDest(
+            destVolumeUUID: destVol.uuid, destLabel: destVol.name, destRootRelpath: destRel)
         await log("DEST volume uuid=\(destVol.uuid) root=\(destVol.rootURL.path) rel=\(destRel)")
 
         // Insert sources
@@ -94,21 +99,28 @@ struct PlannerEngine {
 
             for (s, sid) in sourceIDs {
                 if Task.isCancelled { break }
-                
+
                 await log("Scanning \(s.kind.rawValue): \(s.url.path)")
                 let roots = resolveScanRoots(for: s)
                 if roots.isEmpty {
-                   await log("WARN: No scan root found for source: \(s.url.path)")
-                   continue
+                    await log("WARN: No scan root found for source: \(s.url.path)")
+                    continue
                 }
 
                 for root in roots {
                     let fm = FileManager.default
-                    let keys: [URLResourceKey] = [.isRegularFileKey, .isDirectoryKey, .isSymbolicLinkKey, .fileSizeKey, .contentModificationDateKey]
-                    let opts: FileManager.DirectoryEnumerationOptions = [.skipsHiddenFiles, .skipsPackageDescendants]
+                    let keys: [URLResourceKey] = [
+                        .isRegularFileKey, .isDirectoryKey, .isSymbolicLinkKey, .fileSizeKey,
+                        .contentModificationDateKey,
+                    ]
+                    // Deep Rescue: Do NOT skip package descendants. We want to scan inside .photolibrary files if found.
+                    let opts: FileManager.DirectoryEnumerationOptions = [.skipsHiddenFiles]
 
-                    guard let enumerator = fm.enumerator(at: root, includingPropertiesForKeys: keys, options: opts) else {
-                       await log("ERROR: Failed to enumerate: \(root.path)")
+                    guard
+                        let enumerator = fm.enumerator(
+                            at: root, includingPropertiesForKeys: keys, options: opts)
+                    else {
+                        await log("ERROR: Failed to enumerate: \(root.path)")
                         prog.errorCount += 1
                         await progress(prog)
                         continue
@@ -117,7 +129,7 @@ struct PlannerEngine {
                     for case let fileURL as URL in enumerator {
                         if Task.isCancelled { break }
 
-                         do {
+                        do {
                             let rv = try fileURL.resourceValues(forKeys: Set(keys))
                             if rv.isSymbolicLink == true { continue }
                             if rv.isDirectory == true { continue }
@@ -126,14 +138,18 @@ struct PlannerEngine {
                             let ext = fileURL.pathExtension.lowercased()
                             if !imageExts.contains(ext) { continue }
 
-                            guard let vol = VolumeResolver.volumeInfo(for: fileURL) else { continue }
+                            guard let vol = VolumeResolver.volumeInfo(for: fileURL) else {
+                                continue
+                            }
                             let rel = VolumeResolver.relPath(of: fileURL, volumeRoot: vol.rootURL)
                             let size = Int64(rv.fileSize ?? 0)
-                            let mtime = Int64((rv.contentModificationDate ?? Date(timeIntervalSince1970: 0)).timeIntervalSince1970)
+                            let mtime = Int64(
+                                (rv.contentModificationDate ?? Date(timeIntervalSince1970: 0))
+                                    .timeIntervalSince1970)
 
                             prog.discoveredFiles += 1
                             prog.currentPath = fileURL.path
-                            // Don't await progress update here excessively to avoid stalling loop? 
+                            // Don't await progress update here excessively to avoid stalling loop?
                             // Actually it is fine, but maybe throttle?
                             // For simplicity, just update.
 
@@ -146,29 +162,34 @@ struct PlannerEngine {
                                     }
                                 }
                             }
-                            
+
                             activeTasks += 1
                             group.addTask {
                                 if Task.isCancelled { return nil }
                                 // Hash
-                                let (hex, bytesRead) = try SHA256Hasher.sha256Hex(of: fileURL) { _ in }
-                                return ScanResult(fileURL: fileURL, relPath: rel, volumeUUID: vol.uuid, size: size, mtime: mtime, sid: sid, sha256: hex, bytesRead: bytesRead)
+                                let (hex, bytesRead) = try SHA256Hasher.sha256Hex(of: fileURL) {
+                                    _ in
+                                }
+                                return ScanResult(
+                                    fileURL: fileURL, relPath: rel, volumeUUID: vol.uuid,
+                                    size: size, mtime: mtime, sid: sid, sha256: hex,
+                                    bytesRead: bytesRead)
                             }
 
-                         } catch {
-                             prog.errorCount += 1
-                             await log("ERROR: \(error.localizedDescription) at \(fileURL.path)")
-                             await progress(prog)
-                         }
+                        } catch {
+                            prog.errorCount += 1
+                            await log("ERROR: \(error.localizedDescription) at \(fileURL.path)")
+                            await progress(prog)
+                        }
                     }
                 }
             }
-            
+
             // Drain remaining
             while let res = try await group.next() {
-                 if let r = res {
-                     try await writeResult(r)
-                 }
+                if let r = res {
+                    try await writeResult(r)
+                }
             }
 
             func writeResult(_ r: ScanResult) async throws {
@@ -203,7 +224,7 @@ struct PlannerEngine {
                 }
             }
         }
-        
+
         try db.commit()
 
         // Build blobs (canonical only) + date
@@ -214,7 +235,7 @@ struct PlannerEngine {
         let exif = ExifDateExtractor()
         let candidates = try db.canonicalCandidates()
         var usedDestPaths: Set<String> = []
-        
+
         let blobStmt = try db.prepareInsertBlob()
         defer { db.finalize(blobStmt) }
 
@@ -247,16 +268,16 @@ struct PlannerEngine {
 
             // build dest path: YYYY/MM/DD/<filename>
             // We must handle collisions (different hash/content, same filename & date)
-            
+
             let parts = ymd.split(separator: "-")
             let yyyy = parts.count > 0 ? String(parts[0]) : "1970"
             let mm = parts.count > 1 ? String(parts[1]) : "01"
             let dd = parts.count > 2 ? String(parts[2]) : "01"
             let destRelDir = "\(yyyy)/\(mm)/\(dd)"
-            
+
             let baseName: String
             let ext: String
-            
+
             if c.filename.contains(".") {
                 baseName = (c.filename as NSString).deletingPathExtension
                 ext = (c.filename as NSString).pathExtension
@@ -264,10 +285,10 @@ struct PlannerEngine {
                 baseName = c.filename
                 ext = ""
             }
-            
+
             var candidateName = c.filename
             var counter = 2
-            
+
             // Collision resolution loop
             while usedDestPaths.contains("\(destRelDir)/\(candidateName)") {
                 if ext.isEmpty {
@@ -277,7 +298,7 @@ struct PlannerEngine {
                 }
                 counter += 1
             }
-            
+
             let destRelPath = "\(destRelDir)/\(candidateName)"
             usedDestPaths.insert(destRelPath)
 
@@ -289,7 +310,7 @@ struct PlannerEngine {
                 canonicalFilename: c.filename,
                 archiveYMD: ymd,
                 archiveSource: source,
-                destRelDir: destRelDir, // No longer contains hash
+                destRelDir: destRelDir,  // No longer contains hash
                 destRelPath: destRelPath
             )
 
@@ -339,9 +360,13 @@ struct PlannerEngine {
             // try find in package (depth-limited)
             let fm = FileManager.default
             let opts: FileManager.DirectoryEnumerationOptions = [.skipsHiddenFiles]
-            if let en = fm.enumerator(at: source.url, includingPropertiesForKeys: [.isDirectoryKey], options: opts) {
+            if let en = fm.enumerator(
+                at: source.url, includingPropertiesForKeys: [.isDirectoryKey], options: opts)
+            {
                 for case let u as URL in en {
-                    if candidates.contains(u.lastPathComponent) && FileManager.default.fileExists(atPath: u.path) {
+                    if candidates.contains(u.lastPathComponent)
+                        && FileManager.default.fileExists(atPath: u.path)
+                    {
                         return [u]
                     }
                     // avoid deep scan (best-effort). stop after certain depth
