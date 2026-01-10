@@ -48,7 +48,7 @@ final class Phase2Executor: ObservableObject {
         Task { @MainActor in self.logCallback(msg) }
     }
 
-    func start() {
+    func start(concurrency: Int = 4) {
         guard !isRunning else { return }
         isRunning = true
         lastError = nil
@@ -56,10 +56,11 @@ final class Phase2Executor: ObservableObject {
         consecutiveErrorCount = 0  // Reset circuit breaker on start
 
         let url = self.dbURL
+        let workers = max(1, min(concurrency, 8))  // Cap at 8
 
         task = Task.detached(priority: .userInitiated) {
             do {
-                try await self.runExecutionLoop(dbURL: url)
+                try await self.runExecutionLoop(dbURL: url, concurrency: workers)
                 await MainActor.run {
                     self.isRunning = false
                     self.logCallback("Phase 2 Complete.")
@@ -124,24 +125,17 @@ final class Phase2Executor: ObservableObject {
     }
 
     // This runs on background thread (detached task)
-    nonisolated private func runExecutionLoop(dbURL: URL) async throws {
+    nonisolated private func runExecutionLoop(dbURL: URL, concurrency: Int) async throws {
         // Create DB connection specific to this background thread
-        log("Phase 2 DB Connection: \(dbURL.path)")
-        if let attr = try? FileManager.default.attributesOfItem(atPath: dbURL.path),
-            let size = attr[.size] as? Int64
-        {
-            log("DB File Size: \(size) bytes")
-        }
+        log("Phase 2 DB Connection: \(dbURL.path) (Concurrency: \(concurrency))")
 
         let db = try PlanDB(dbURL: dbURL)
 
         // Debug: List tables
         let tables = try db.listTables()
-        log("DB Tables: \(tables.joined(separator: ", "))")
-
         if !tables.contains("ops") {
             log("CRITICAL ERROR: 'ops' table missing! Tables found: \(tables)")
-            throw Phase2Error.planNotFrozen("Table 'ops' missing. Phase 1 likely failed.")
+            throw Phase2Error.planNotFrozen("Table 'ops' missing.")
         }
 
         // 0. Auto-recover stale RUNNING ops
@@ -152,15 +146,10 @@ final class Phase2Executor: ObservableObject {
 
         // 1. Pending count
         let pendingCount = try db.pendingOpsCount()
-
         let statusCounts = try db.getOpCountsByStatus()
         let statusMsg = statusCounts.map { "\($0.key): \($0.value)" }.joined(separator: ", ")
 
         await MainActor.run {
-            self.progress.opsTotal = pendingCount  // Or total?
-            // Better to show total ops, not just pending?
-            // For progress bar: `total` usually implies 100%.
-            // If we have 0 pending but 100 DONE, total should be 100.
             if let total = try? db.totalOpsCount() {
                 self.progress.opsTotal = total
                 self.progress.opsDone = statusCounts["DONE"] ?? 0
@@ -169,44 +158,103 @@ final class Phase2Executor: ObservableObject {
             }
         }
 
-        log("Phase 2 Starting (Serial). Stats: [\(statusMsg)]")
+        log("Phase 2 Starting. Stats: [\(statusMsg)]")
 
-        while !Task.isCancelled {
-            guard let op = try db.nextPendingOp() else {
-                // Re-check stats to be sure
-                let finalStats = try db.getOpCountsByStatus()
-                let finalMsg = finalStats.map { "\($0.key): \($0.value)" }.joined(separator: ", ")
-                log("No more pending operations. Final Stats: [\(finalMsg)]")
-                break
-            }
+        // 2. Parallel Loop
+        try await withThrowingTaskGroup(of: (Int64, Int64, String?).self) { group in
+            var activeTasks = 0
 
-            do {
-                // Update specific OP to Running? No, nextPendingOp just fetches pending.
-                // We should update to RUNNING to avoid re-fetch if we crash?
-                // Using nextPendingOp implies PENDING.
-                // For robustness, let's just process it.
+            // Loop until no pending ops left
+            while !Task.isCancelled {
+                // Check if we need to fetch more ops
+                // We fetch a batch equal to free slots
+                let freeSlots = concurrency - activeTasks
+                if freeSlots > 0 {
+                    // Try to reserve batch
+                    // We catch error here to avoid breaking loop on DB lock transient issues?
+                    // But assume PlanDB retries or we fail hard.
+                    let batch = try db.reserveNextOps(limit: freeSlots)
 
-                try db.updateOpStatus(
-                    opID: op.0, status: "RUNNING", error: nil, bytesCopied: 0, verified: false)
+                    if batch.isEmpty && activeTasks == 0 {
+                        // Done.
+                        break
+                    }
 
-                let bytes = try self.processOp(op, db: db)
+                    for op in batch {
+                        activeTasks += 1
+                        group.addTask {
+                            if Task.isCancelled { return (op.0, 0, nil) }
+                            do {
+                                // Create a separate DB instance? NO.
+                                // Passed DB? NO. PlanDB is not thread safe for shared usage.
+                                // We MUST NOT use 'db' inside this task if we want concurrency.
+                                // Wait, `processOp` uses `db` to read Dest Info.
+                                // We need to read Dest Info ONCE outside loop or pass it down.
+                                // The Plan Info is constant.
+                                // But `processOp` calls `db.readPlanInfo()`.
+                                // Refactor: Read Plan Info once per loop? Or create temp DB per task?
+                                // Temp DB per task is safest for SQLite concurrency if using separate connections.
+                                // OR simpler: Pass the needed info (destUUID, destRoot) to `processOp`.
 
-                try db.updateOpStatus(
-                    opID: op.0, status: "DONE", error: nil, bytesCopied: bytes, verified: true)
+                                // Let's optimize: We read Plan Info ONCE here.
+                                let (destUUID, destRelRoot, _) = try PlanDB(dbURL: dbURL)
+                                    .readPlanInfo()  // Use a temp DB to read just once? Or use main `db`.
+                                // Main `db` is busy? No, we are in the main loop thread.
 
-                await MainActor.run {
-                    self.progress.opsDone += 1
-                    self.progress.bytesCopied += bytes
+                                // Actually, constructing PlanDB is cheap.
+                                // Let's create a thread-local PlanDB inside the task?
+                                // Yes, that allows true concurrency on WAL mode.
+
+                                let workerDB = try PlanDB(dbURL: dbURL)
+                                let bytes = try self.processOp(
+                                    op, db: workerDB, destUUID: destUUID, destRelRoot: destRelRoot)
+                                return (op.0, bytes, nil)
+                            } catch {
+                                return (op.0, 0, error.localizedDescription)
+                            }
+                        }
+                    }
                 }
 
-            } catch {
-                let errMsg = self.errorMessage(for: error)
-                try db.updateOpStatus(opID: op.0, status: "ERROR", error: errMsg)
-                log("Op \(op.0) Failed: \(errMsg)")
-                // Do we stop on error? Or continue? Pattern is usually continue best effort
-                // throw error // Uncomment to abort on first error
+                // Wait for one result
+                if let result = try await group.next() {
+                    activeTasks -= 1
+                    let (opID, bytes, errStr) = result
+
+                    if let err = errStr {
+                        try db.updateOpStatus(opID: opID, status: "ERROR", error: err)
+                        log("Op \(opID) Failed: \(err)")
+
+                        // Circuit breaker check (MainActor)
+                        let stop = await MainActor.run {
+                            self.consecutiveErrorCount += 1
+                            return self.consecutiveErrorCount >= 5
+                        }
+
+                        if stop {
+                            log(
+                                "CRITICAL: Circuit breaker tripped (5 consecutive errors). Stopping."
+                            )
+                            throw Phase2Error.ioError("Circuit breaker tripped.")
+                        }
+
+                    } else {
+                        try db.updateOpStatus(
+                            opID: opID, status: "DONE", error: nil, bytesCopied: bytes,
+                            verified: true)
+
+                        await MainActor.run {
+                            self.consecutiveErrorCount = 0  // Reset on success
+                            self.progress.opsDone += 1
+                            self.progress.bytesCopied += bytes
+                        }
+                    }
+                }
             }
         }
+
+        // Final stats check
+        log("Phase 2 Loop Finished.")
     }
 
     nonisolated private func errorMessage(for error: Error) -> String {
@@ -214,7 +262,8 @@ final class Phase2Executor: ObservableObject {
     }
 
     nonisolated private func processOp(
-        _ op: (Int64, String, String, String, String, Int64), db: PlanDB
+        _ op: (Int64, String, String, String, String, Int64), db: PlanDB,
+        destUUID: String?, destRelRoot: String?
     ) throws -> Int64 {
         let (opID, sha256, srcVol, srcRel, destRel, expectedSize) = op
 
@@ -223,9 +272,21 @@ final class Phase2Executor: ObservableObject {
             throw Phase2Error.volumeNotMounted("Src Volume \(srcVol)")
         }
 
-        let (destUUID, destRelRoot, _) = try db.readPlanInfo()
-        guard let dUUID = destUUID, let dRootRel = destRelRoot else {
-            throw Phase2Error.planNotFrozen("Missing dest info in Plan table")
+        // Use passed info or fetch if nil (though we expect passed info in optimized loop)
+        let dUUID: String
+        let dRootRel: String
+
+        if let u = destUUID, let r = destRelRoot {
+            dUUID = u
+            dRootRel = r
+        } else {
+            // Fallback for non-optimized calls (if any)
+            let (uuid, root, _) = try db.readPlanInfo()
+            guard let u = uuid, let r = root else {
+                throw Phase2Error.planNotFrozen("Missing dest info in Plan table")
+            }
+            dUUID = u
+            dRootRel = r
         }
 
         guard let destVolRoot = VolumeResolver.mountURL(forVolumeUUID: dUUID) else {
@@ -236,7 +297,7 @@ final class Phase2Executor: ObservableObject {
         let destRoot = destVolRoot.appendingPathComponent(dRootRel)
         let destURL = destRoot.appendingPathComponent(destRel)
 
-        log("Op \(opID) Start: \(srcURL.path) -> \(destURL.path)")
+        // log("Op \(opID) Start: \(srcURL.path) -> \(destURL.path)") // Too verbose for parallel?
 
         // 2. Verify Src
         let fm = FileManager.default

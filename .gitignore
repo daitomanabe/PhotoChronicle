@@ -1,0 +1,15 @@
+.DS_Store
+.build/
+.swiftpm/
+Packages/
+xcuserdata/
+dist/
+*.xcodeproj
+*.xcworkspace
+*.o
+*.dia
+*.swiftsourceinfo
+*~
+*.swp
+data_for_debug/
+phase2_execution_log.txt

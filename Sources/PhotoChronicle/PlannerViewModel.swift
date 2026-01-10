@@ -286,6 +286,8 @@ final class PlannerViewModel: ObservableObject {
         let currentSources = sources
         let mode = planMode
 
+        var lastLoggedCount = 0
+
         Task {
             do {
                 let engine = PlannerEngine()  // Instantiate engine inside the task
@@ -295,7 +297,15 @@ final class PlannerViewModel: ObservableObject {
                     destFolder: dest,
                     dbURL: dbURL,
                     progress: { [weak self] p in
-                        await MainActor.run { self?.progress = p }
+                        await MainActor.run {
+                            self?.progress = p
+                            // Throttle logging: every 1000 items
+                            let current = p.discoveredFiles
+                            if current - lastLoggedCount >= 1000 {
+                                self?.log("Phase 1 Progress: \(current) files scanned...")
+                                lastLoggedCount = current
+                            }
+                        }
                     },
                     log: { [weak self] msg in
                         await MainActor.run { self?.log(msg) }
@@ -303,7 +313,25 @@ final class PlannerViewModel: ObservableObject {
                 )
                 await MainActor.run { [weak self] in
                     self?.isRunning = false
-                    self?.log("Phase 1 Complete.")
+
+                    if let p = self?.progress {
+                        let total = p.hashedFiles  // "Candidates" hashed
+                        let unique = p.uniqueBlobs
+                        let duplicates = total - unique
+
+                        let msg = """
+                            Phase 1 Complete.
+                            --------------------------------------------------
+                            Total Scanned  : \(p.discoveredFiles)
+                            Candidates     : \(total)
+                            Unique Files   : \(unique) (To Copy)
+                            Duplicates     : \(duplicates) (Skipped)
+                            --------------------------------------------------
+                            """
+                        self?.log(msg)
+                    } else {
+                        self?.log("Phase 1 Complete.")
+                    }
                 }
             } catch {
                 await MainActor.run { [weak self] in
@@ -358,6 +386,8 @@ final class PlannerViewModel: ObservableObject {
         }
     }
 
+    @Published var concurrencyLevel: Int = ProcessInfo.processInfo.activeProcessorCount
+
     // Update startPhase2 to init log file
     func startPhase2() {
         guard !isRunning, let url = planDBURL else { return }
@@ -380,7 +410,7 @@ final class PlannerViewModel: ObservableObject {
                 }
             })
         self.phase2 = executor
-        executor.start()
+        executor.start(concurrency: concurrencyLevel)
     }
 
     func cancelPhase2() {

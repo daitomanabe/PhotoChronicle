@@ -330,6 +330,55 @@ struct ContentView: View {
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
+                }
+
+                Divider()
+
+                // Concurrency Settings
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Speed Strategy:")
+                            .font(.subheadline)
+                        Picker(
+                            "Speed",
+                            selection: Binding(
+                                get: { vm.concurrencyLevel > 1 ? "Fast" : "Safe" },
+                                set: { val in
+                                    if val == "Safe" {
+                                        vm.concurrencyLevel = 1
+                                    } else {
+                                        vm.concurrencyLevel =
+                                            ProcessInfo.processInfo.activeProcessorCount
+                                    }
+                                }
+                            )
+                        ) {
+                            Text("Safe (Serial)").tag("Safe")
+                            Text("Fast (Parallel)").tag("Fast")
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 150)
+                    }
+
+                    if vm.concurrencyLevel > 1 {
+                        HStack {
+                            Text("Threads: \(vm.concurrencyLevel)")
+                                .monospacedDigit()
+                                .font(.caption)
+                                .frame(width: 80, alignment: .leading)
+
+                            Slider(
+                                value: Binding(
+                                    get: { Double(vm.concurrencyLevel) },
+                                    set: { vm.concurrencyLevel = Int($0) }
+                                ), in: 2...8, step: 1)
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
+
+                HStack {
+                    Spacer()
 
                     if vm.planDBURL != nil && !vm.isRunning {
                         Button("Reset Ops (Retry)") {
