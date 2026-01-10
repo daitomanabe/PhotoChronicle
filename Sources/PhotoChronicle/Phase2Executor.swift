@@ -25,6 +25,11 @@ final class Phase2Executor: ObservableObject {
     @Published var isRunning = false
     @Published var lastError: String? = nil
 
+    // Circuit breaker state
+    private var consecutiveErrorCount = 0
+
+    // Logging callback
+    var logHandler: ((String) -> Void)?
     // We store URL to recreate DB in background task
     private let dbURL: URL
     // Log callback must be Sendable? closures are sendable if capture list is safe.
@@ -47,6 +52,7 @@ final class Phase2Executor: ObservableObject {
         isRunning = true
         lastError = nil
         progress = Phase2Progress()
+        consecutiveErrorCount = 0  // Reset circuit breaker on start
 
         let url = self.dbURL
 
