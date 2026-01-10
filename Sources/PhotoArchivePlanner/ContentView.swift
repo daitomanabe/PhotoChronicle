@@ -6,60 +6,60 @@ struct ContentView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Main content scrollable
+            // Main Content
             ScrollView {
-                VStack(spacing: 20) {
-                    // Step 1: Plan Database
-                    GroupBox(label: Label("Step 1: Plan Database", systemImage: "database")) {
+                VStack(spacing: 24) {
+                    // Header
+                    HStack {
+                        Image(systemName: "photo.stack")
+                            .font(.largeTitle)
+                            .foregroundStyle(.blue)
+                        VStack(alignment: .leading) {
+                            Text("Photo Archive Planner")
+                                .font(.title2)
+                                .bold()
+                            Text("Organize and Deduplicate Media")
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                    }
+                    .padding(.bottom, 8)
+
+                    // Step 1: Database
+                    StepCard(title: "1. Database", icon: "database") {
                         planDatabaseSection
-                            .padding(8)
                     }
 
-                    // Step 2 & 3: Sources & Destination
+                    // Steps 2 & 3: I/O
                     HStack(alignment: .top, spacing: 20) {
-                        // Step 2: Sources
-                        GroupBox(
-                            label: Label("Step 2: Sources (Input)", systemImage: "arrow.down.doc")
-                        ) {
+                        StepCard(title: "2. Input Sources", icon: "arrow.down.doc") {
                             sourcesSection
-                                .padding(8)
                         }
                         .frame(maxWidth: .infinity)
 
-                        // Step 3: Destination
-                        GroupBox(
-                            label: Label(
-                                "Step 3: Destination (Output)", systemImage: "externaldrive")
-                        ) {
+                        StepCard(title: "3. Destination", icon: "externaldrive") {
                             destinationSection
-                                .padding(8)
                         }
                         .frame(maxWidth: .infinity)
                     }
 
-                    // Step 4: Phase 1
-                    GroupBox(
-                        label: Label(
-                            "Step 4: Phase 1 (Scan & Analysis)", systemImage: "magnifyingglass")
-                    ) {
+                    // Step 4: Analysis
+                    StepCard(title: "4. Analysis (Phase 1)", icon: "magnifyingglass") {
                         phase1Section
-                            .padding(8)
                     }
 
-                    // Step 5: Phase 2
-                    GroupBox(label: Label("Step 5: Phase 2 (Execution)", systemImage: "play.fill"))
-                    {
+                    // Step 5: Execution
+                    StepCard(title: "5. Execution (Phase 2)", icon: "play.fill") {
                         phase2Section
-                            .padding(8)
                     }
                 }
-                .padding()
+                .padding(24)
             }
-            // Log panel fixed at bottom
-            Divider()
-            progressPanel
-                .frame(height: 200)
-                .background(Color(NSColor.controlBackgroundColor))
+            .background(Color(NSColor.textBackgroundColor))  // Slightly different bg
+
+            // Console / Log Panel
+            ConsolePanel(vm: vm)
+                .frame(height: 220)
         }
         .onAppear { vm.bootstrap() }
     }
@@ -67,103 +67,144 @@ struct ContentView: View {
     // MARK: - Sections
 
     private var planDatabaseSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Picker("Mode", selection: $vm.planMode) {
-                ForEach(PlanMode.allCases) { mode in
-                    Text(mode.rawValue).tag(mode)
+        HStack(alignment: .center, spacing: 16) {
+            VStack(alignment: .leading, spacing: 8) {
+                Picker("Mode", selection: $vm.planMode) {
+                    ForEach(PlanMode.allCases) { mode in
+                        Text(mode.rawValue).tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 180)
+            }
+
+            Divider().frame(height: 40)
+
+            VStack(alignment: .leading, spacing: 4) {
+                if let url = vm.planDBURL {
+                    HStack {
+                        Image(systemName: "doc.text.fill")
+                            .foregroundStyle(.blue)
+                        Text(url.lastPathComponent)
+                            .bold()
+                    }
+                    Text(url.path)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                } else {
+                    Text("No Database Selected")
+                        .foregroundStyle(.secondary)
+                        .italic()
                 }
             }
-            .pickerStyle(.segmented)
-            .frame(width: 200)
 
-            HStack {
-                Text(vm.planDBURL?.lastPathComponent ?? "No Database Selected")
-                    .font(.headline)
-                if let path = vm.planDBURL?.path {
-                    Text(path).font(.caption).foregroundStyle(.secondary)
-                        .lineLimit(1).truncationMode(.middle)
-                }
-                Spacer()
-                Button(vm.planMode == .new ? "Create / Save..." : "Select Existing...") {
+            Spacer()
+
+            VStack(alignment: .trailing, spacing: 6) {
+                Button(vm.planMode == .new ? "Create / Save New..." : "Select Existing...") {
                     vm.openChooseDBPanel(merging: false)
                 }
-                Button("Reveal in Finder") {
+
+                if vm.planMode == .append {
+                    Button("Merge Another Plan...") {
+                        vm.openChooseDBPanel(merging: true)
+                    }
+                    .controlSize(.small)
+                }
+
+                Button("Show in Finder") {
                     vm.revealPlanDBInFinder()
                 }
+                .controlSize(.small)
                 .disabled(vm.planDBURL == nil)
-            }
-
-            if vm.planMode == .append {
-                Button("Merge another plan...") {
-                    vm.openChooseDBPanel(merging: true)
-                }
-                .font(.caption)
             }
         }
     }
 
     private var sourcesSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             DropZoneView(
-                title: "Drag & Drop Libraries/Folders",
-                subtitle: "Photos Libraries or Folders",
-                acceptHint: "Drop Sources Here",
+                title: "Drop Libraries or Folders",
+                subtitle: "Photos Libraries imply 'Originals' scan",
                 onDropURLs: { vm.addSources(from: $0) }
             )
 
             HStack {
-                Button("Add Source…") { vm.openAddSourcesPanel() }
+                Button(action: { vm.openAddSourcesPanel() }) {
+                    Label("Add Source", systemImage: "plus")
+                }
                 Spacer()
-                Button("Clear") { vm.clearSources() }
+                Button("Clear All") { vm.clearSources() }
+                    .controlSize(.small)
                     .disabled(vm.sources.isEmpty || vm.isRunning)
             }
 
-            List {
-                Section("Libraries") {
-                    if vm.sources.filter({ $0.kind == .library }).isEmpty {
-                        Text("No libraries").foregroundStyle(.secondary)
-                    }
-                    ForEach(vm.sources.filter { $0.kind == .library }) { s in
-                        SourceRowView(source: s, onRemove: { vm.removeSource(s) })
+            if vm.sources.isEmpty {
+                Text("No sources added")
+                    .frame(maxWidth: .infinity, minHeight: 100, alignment: .center)
+                    .foregroundStyle(.tertiary)
+                    .background(RoundedRectangle(cornerRadius: 6).fill(Color.gray.opacity(0.1)))
+            } else {
+                List {
+                    ForEach(vm.sources) { s in
+                        HStack {
+                            Image(systemName: s.kind == .library ? "photo.on.rectangle" : "folder")
+                            Text(s.displayName)
+                            Spacer()
+                            Text(s.url.path).font(.caption).foregroundStyle(.secondary)
+                                .truncationMode(.middle)
+                                .lineLimit(1)
+                            Button {
+                                vm.removeSource(s)
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundStyle(.gray)
+                            }
+                            .buttonStyle(.borderless)
+                        }
                     }
                 }
-                Section("Folders") {
-                    if vm.sources.filter({ $0.kind == .folder }).isEmpty {
-                        Text("No folders").foregroundStyle(.secondary)
-                    }
-                    ForEach(vm.sources.filter { $0.kind == .folder }) { s in
-                        SourceRowView(source: s, onRemove: { vm.removeSource(s) })
-                    }
-                }
+                .listStyle(.plain)
+                .frame(minHeight: 120)
+                .background(RoundedRectangle(cornerRadius: 6).stroke(Color.gray.opacity(0.2)))
             }
-            .frame(minHeight: 150)
         }
     }
 
     private var destinationSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             DropZoneView(
-                title: "Destination Folder",
-                subtitle: "Where files will be copied",
-                acceptHint: "Drop Destination Here",
+                title: "Drop Destination Folder",
+                subtitle: "Root for YYYY/MM/DD archive",
                 onDropURLs: { vm.setDestinationFromDrop($0) }
             )
 
-            HStack {
-                Button("Choose DEST…") { vm.openChooseDestPanel() }
-                Spacer()
-            }
+            Button("Choose Destination...") { vm.openChooseDestPanel() }
 
-            if let dest = vm.destFolder {
-                Text(dest.path)
-                    .font(.body)
-                    .bold()
-                    .lineLimit(2)
-            } else {
-                Text("No destination selected")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Selected Destination:")
+                    .font(.caption).bold().foregroundStyle(.secondary)
+
+                HStack {
+                    Image(systemName: "folder.fill")
+                        .foregroundStyle(.orange)
+                    if let dest = vm.destFolder {
+                        Text(dest.path)
+                            .bold()
+                            .lineLimit(2)
+                    } else {
+                        Text("None selected")
+                            .italic()
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
+            .padding(10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: 6).fill(Color.gray.opacity(0.1)))
+            .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.gray.opacity(0.2)))
 
             Spacer()
         }
@@ -171,149 +212,249 @@ struct ContentView: View {
 
     private var phase1Section: some View {
         HStack {
-            VStack(alignment: .leading) {
-                Text("Scans sources, verifies consistency, and builds the plan database.")
-                    .font(.caption).foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Deep Scan & Planning")
+                    .font(.headline)
+                Text("Scans all sources, hashes files, and identifies duplicates.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
+
             Spacer()
 
             if vm.isRunning {
-                ProgressView().controlSize(.small)
-                Text("Running Phase 1...")
+                HStack {
+                    ProgressView().controlSize(.small)
+                    Text("Scanning...")
+                        .foregroundStyle(.blue)
+                }
                 Button("Cancel") { vm.cancel() }
             } else {
-                Button("Start Phase 1") {
-                    vm.startPhase1()
+                Button(action: { vm.startPhase1() }) {
+                    Text("Start Phase 1")
+                        .font(.body.bold())
+                        .frame(minWidth: 120)
+                        .padding(.vertical, 4)
                 }
                 .buttonStyle(.borderedProminent)
+                .tint(.blue)
                 .disabled(!vm.canStart || vm.isRunningPhase2)
             }
         }
     }
 
     private var phase2Section: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             if let p2 = vm.phase2, p2.isRunning {
-                VStack(alignment: .leading) {
-                    Text("Phase 2 Running...").font(.headline)
-                    ProgressView(
-                        value: Double(p2.progress.opsDone),
-                        total: Double(max(1, p2.progress.opsTotal)))
-                    HStack {
-                        Text("\(p2.progress.opsDone) / \(p2.progress.opsTotal) Ops")
-                        Spacer()
-                        Text(
-                            ByteCountFormatter.string(
-                                fromByteCount: p2.progress.bytesCopied, countStyle: .file))
+                HStack(alignment: .top, spacing: 16) {
+                    VStack(alignment: .leading) {
+                        Text("Executing Plan").font(.headline)
+                        Text(p2.progress.currentOp)
+                            .font(.caption2)
+                            .monospaced()
+                            .lineLimit(1)
+                            .truncationMode(.middle)
                     }
-                    Text(p2.progress.currentOp)
-                        .font(.caption)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-
+                    Spacer()
                     Button("Cancel Phase 2") { vm.cancelPhase2() }
                         .keyboardShortcut(.cancelAction)
                 }
+
+                ProgressView(
+                    value: Double(p2.progress.opsDone),
+                    total: Double(max(1, p2.progress.opsTotal)))
+
+                HStack {
+                    Text("\(p2.progress.opsDone) / \(p2.progress.opsTotal) Ops")
+                        .monospacedDigit()
+                    Spacer()
+                    Text(
+                        ByteCountFormatter.string(
+                            fromByteCount: p2.progress.bytesCopied, countStyle: .file)
+                    )
+                    .foregroundStyle(.secondary)
+                }
             } else {
                 HStack {
-                    VStack(alignment: .leading) {
-                        Text("Executes the copy operations defined in the plan.")
-                            .font(.caption).foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Execute Copy")
+                            .font(.headline)
+                        Text("Performs physical copy and verification.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                     Spacer()
 
-                    Button("Start Phase 2") {
-                        vm.startPhase2()
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(vm.planDBURL == nil || vm.isRunning)
-
                     if vm.planDBURL != nil && !vm.isRunning {
-                        Button("Reset Ops") {
+                        Button("Reset Ops (Retry)") {
                             vm.resetPhase2Ops()
                         }
-                        .help("Resets all operations to PENDING state to retry.")
+                        .tint(.red)
+                        .controlSize(.small)
                     }
+
+                    Button(action: { vm.startPhase2() }) {
+                        Text("Start Phase 2")
+                            .font(.body.bold())
+                            .frame(minWidth: 120)
+                            .padding(.vertical, 4)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.green)
+                    .disabled(vm.planDBURL == nil || vm.isRunning)
                 }
             }
 
             if let err = vm.lastError {
-                Text("Error: \(err)")
-                    .foregroundStyle(.red)
-                    .font(.caption)
-            }
-        }
-    }
-
-    private var progressPanel: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Rectangle().fill(Color(NSColor.separatorColor)).frame(height: 1)
-            HStack {
-                Text("Logs / Status").font(.headline)
-                Spacer()
-                Text(vm.progress.stage.rawValue)
-            }
-            .padding(8)
-
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 2) {
-                    ForEach(vm.logs.indices, id: \.self) { i in
-                        Text(vm.logs[i])
-                            .font(.caption2)
-                            .fontDesign(.monospaced)
-                            .textSelection(.enabled)
-                    }
+                HStack {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                    Text(err)
                 }
-                .padding(.horizontal, 8)
+                .foregroundStyle(.red)
+                .font(.caption)
+                .padding(8)
+                .background(Color.red.opacity(0.1))
+                .cornerRadius(4)
             }
         }
     }
-
 }
 
-private struct SourceRowView: View {
-    let source: SourceItem
-    let onRemove: () -> Void
+// MARK: - Components
+
+struct StepCard<Content: View>: View {
+    let title: String
+    let icon: String
+    @ViewBuilder let content: Content
 
     var body: some View {
-        HStack {
-            Text(source.displayName).lineLimit(1)
-            Spacer()
-            Text(source.url.path).font(.caption).foregroundStyle(.secondary).lineLimit(1)
-                .truncationMode(.middle)
-            Button("Remove", action: onRemove)
-                .buttonStyle(.borderless)
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                Image(systemName: icon)
+                    .foregroundStyle(.secondary)
+                Text(title)
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+                Spacer()
+            }
+            .padding(12)
+            .background(Color(NSColor.controlBackgroundColor))
+            .overlay(
+                Rectangle().frame(height: 1).foregroundStyle(Color.gray.opacity(0.1)),
+                alignment: .bottom)
+
+            content
+                .padding(16)
         }
+        .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
+        .cornerRadius(10)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.gray.opacity(0.15), lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
 }
 
-private struct DropZoneView: View {
+struct ConsolePanel: View {
+    @ObservedObject var vm: PlannerViewModel
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Status Bar
+            HStack {
+                Circle()
+                    .fill(statusColor)
+                    .frame(width: 8, height: 8)
+                Text(vm.isRunning ? "RUNNING" : (vm.lastError == nil ? "READY" : "ERROR"))
+                    .font(.caption.bold())
+                    .foregroundStyle(statusColor)
+
+                Spacer()
+
+                HStack(spacing: 12) {
+                    Label("Files: \(vm.progress.discoveredFiles)", systemImage: "doc")
+                    Label("Unique: \(vm.progress.uniqueBlobs)", systemImage: "star")
+                    Label("Errs: \(vm.progress.errorCount)", systemImage: "exclamationmark.circle")
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(Color(NSColor.windowBackgroundColor))
+
+            Divider()
+
+            // Console
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 2) {
+                        ForEach(vm.logs.indices, id: \.self) { i in
+                            Text(vm.logs[i])
+                                .font(.system(size: 11, weight: .regular, design: .monospaced))
+                                .foregroundStyle(.white)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .id(i)
+                        }
+                    }
+                    .padding(8)
+                }
+                .background(Color(red: 0.1, green: 0.1, blue: 0.12))  // Dark console bg
+                .onChange(of: vm.logs.count) { _ in
+                    if let last = vm.logs.indices.last {
+                        proxy.scrollTo(last, anchor: .bottom)
+                    }
+                }
+            }
+        }
+    }
+
+    var statusColor: Color {
+        if vm.lastError != nil { return .red }
+        if vm.isRunning { return .blue }
+        return .green
+    }
+}
+
+struct DropZoneView: View {
     let title: String
     let subtitle: String
-    let acceptHint: String
     let onDropURLs: ([URL]) -> Void
 
     @State private var isTargeted: Bool = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title).font(.headline)
-            Text(subtitle).font(.caption).foregroundStyle(.secondary)
+        VStack(spacing: 6) {
+            Image(systemName: "arrow.down.circle")
+                .font(.title)
+                .foregroundStyle(isTargeted ? .blue : .gray)
+            Text(title)
+                .font(.body).bold()
+                .foregroundStyle(isTargeted ? .primary : .secondary)
+            Text(subtitle)
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 100)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(isTargeted ? Color.blue.opacity(0.05) : Color.clear)
+        )
+        .overlay(
             RoundedRectangle(cornerRadius: 8)
                 .strokeBorder(
-                    isTargeted ? Color.accentColor : .secondary.opacity(0.6),
-                    style: StrokeStyle(lineWidth: 2, dash: [6])
+                    isTargeted ? Color.blue : Color.gray.opacity(0.3),
+                    style: StrokeStyle(lineWidth: isTargeted ? 2 : 1, dash: [6])
                 )
-                .frame(height: 54)
-                .overlay(
-                    Text(acceptHint).font(.caption).foregroundStyle(.secondary)
-                )
-                .onDrop(of: [UTType.fileURL.identifier], isTargeted: $isTargeted) { providers in
-                    DropUtil.loadFileURLs(from: providers) { urls in
-                        onDropURLs(urls)
-                    }
-                }
+        )
+        .onDrop(of: [UTType.fileURL.identifier], isTargeted: $isTargeted) { providers in
+            DropUtil.loadFileURLs(from: providers) { urls in
+                onDropURLs(urls)
+            }
         }
-        .padding(.vertical, 4)
+        .animation(.easeInOut(duration: 0.2), value: isTargeted)
     }
 }
