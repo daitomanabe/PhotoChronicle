@@ -4,21 +4,21 @@
 import PackageDescription
 
 let package = Package(
-    name: "PhotoArchivePlanner",
+    name: "PhotoChronicle",
     platforms: [
         .macOS(.v13)
     ],
     products: [
         .executable(
-            name: "PhotoArchivePlanner",
-            targets: ["PhotoArchivePlanner"]),
+            name: "PhotoChronicle",
+            targets: ["PhotoChronicle"])
     ],
     targets: [
         .executableTarget(
-            name: "PhotoArchivePlanner",
+            name: "PhotoChronicle",
             linkerSettings: [
                 .linkedLibrary("sqlite3")
             ]
-        ),
+        )
     ]
 )

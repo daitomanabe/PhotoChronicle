@@ -1,7 +1,7 @@
-# Photo Archive Planner v5 - User Manual
+# PhotoChronicle - User Manual
 
 ## Overview
-Photo Archive Planner is a tool designed to consolidate large, disorganized photo/video collections into a clean, strictly chronological archive (YYYY/MM/DD) while performing deduplication using SHA-256 hashing.
+PhotoChronicle is a tool designed to consolidate large, disorganized photo/video collections into a clean, strictly chronological archive (YYYY/MM/DD) while performing deduplication using SHA-256 hashing.
 
 ## Workflow: The 5 Steps
 

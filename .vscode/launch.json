@@ -17,6 +17,24 @@
             "name": "Release PhotoArchivePlanner",
             "program": "${workspaceFolder:photo_archive_planner_ui_swiftui}/.build/release/PhotoArchivePlanner",
             "preLaunchTask": "swift: Build Release PhotoArchivePlanner"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:photo_archive_planner_ui_swiftui}",
+            "name": "Debug PhotoChronicle",
+            "program": "${workspaceFolder:photo_archive_planner_ui_swiftui}/.build/debug/PhotoChronicle",
+            "preLaunchTask": "swift: Build Debug PhotoChronicle"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:photo_archive_planner_ui_swiftui}",
+            "name": "Release PhotoChronicle",
+            "program": "${workspaceFolder:photo_archive_planner_ui_swiftui}/.build/release/PhotoChronicle",
+            "preLaunchTask": "swift: Build Release PhotoChronicle"
         }
     ]
 }
