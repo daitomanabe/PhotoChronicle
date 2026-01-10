@@ -5,7 +5,7 @@ Photo Archive Planner is a tool designed to consolidate large, disorganized phot
 
 ## Workflow: The 5 Steps
 
-The user interface is organized into a vertical flow representing the order of operations.
+The user interface is organized into **Step Cards** that guide you through the process sequentially.
 
 ### Step 1: Plan Database
 The database stores all information about the scan, file hashes, and execution status.
