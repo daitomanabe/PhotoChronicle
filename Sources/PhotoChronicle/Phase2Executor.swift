@@ -15,6 +15,7 @@ enum Phase2Error: Error {
 struct Phase2Progress {
     var opsTotal: Int = 0
     var opsDone: Int = 0
+    var errorCount: Int = 0
     var bytesCopied: Int64 = 0
     var currentOp: String = ""
 }
@@ -82,6 +83,44 @@ final class Phase2Executor: ObservableObject {
     func cancel() {
         task?.cancel()
         task = nil
+    }
+
+    private func writeInterruptionReport(error: String, lastFile: String) async {
+        let report = """
+            ==================================================
+            PHOTO CHRONICLE - INTERRUPTION REPORT
+            ==================================================
+            Time: \(Date().formatted())
+
+            CRITICAL ERROR:
+            \(error)
+
+            LAST ATTEMPTED FILE:
+            \(lastFile)
+
+            STATUS:
+            - Processed: \(progress.opsDone)
+            - Errors: \(progress.errorCount)
+            - Remaining: \(progress.opsTotal - progress.opsDone)
+
+            HOW TO RESUME:
+            1. Check your connection (NAS/USB Drive).
+            2. Restart PhotoChronicle.
+            3. Click "Start Phase 2" again.
+
+            The system automatically saved your progress up to the error.
+            It will skip all files successfully copied and continue from where it left off.
+            ==================================================
+            """
+
+        let reportURL = dbURL.deletingLastPathComponent().appendingPathComponent(
+            "_INTERRUPTION_REPORT.txt")
+        do {
+            try report.write(to: reportURL, atomically: true, encoding: String.Encoding.utf8)
+            self.log("Report saved to: \(reportURL.path)")
+        } catch {
+            self.log("Failed to save interruption report: \(error.localizedDescription)")
+        }
     }
 
     // This runs on background thread (detached task)
