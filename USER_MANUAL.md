@@ -1,7 +1,15 @@
 # PhotoChronicle - User Manual
 
 ## Overview
-PhotoChronicle is a tool designed to consolidate large, disorganized photo/video collections into a clean, strictly chronological archive (YYYY/MM/DD) while performing deduplication using SHA-256 hashing.
+## Overview
+PhotoChronicle is a tool designed to consolidate large, disorganized photo/video collections into a clean, strictly chronological archive (YYYY/MM/DD) while performing deduplication using SHA-256 hashing. It supports images (JPG, HEIC, RAW, etc.) and videos (MOV, MP4, MTS, AVI, etc.).
+
+## Video Support
+- **Supported Formats**: `MTS`, `m2ts`, `AVI`, `MOV`, `MP4`, `M4V`, `WMV`, `FLV`, `3GP`, `MPG`, `DV`, `MKV`, `WEBM`, `VOB`.
+- **Date Extraction**: 
+  - Attempts to read "Creation Date" from video metadata (QuickTime/ISO specs).
+  - Falls back to **File Modification Time (MTIME)** if metadata is unavailable (common with older AVI/MTS files).
+
 
 ## Workflow: The 5 Steps
 
@@ -29,11 +37,14 @@ Select where the organized archive will be written.
   - If a file has different content but the same filename/date, it is renamed with a version suffix (`_v2`, `_v3`).
 
 ### Step 4: Phase 1 (Scan & Analysis)
+- **Media Selection**: 
+  - Toggle **[x] Images** or **[x] Videos** to choose which file types to scan. At least one must be selected.
+  - Useful for incremental backups (e.g., "I just want to rescue videos now").
 - **Start Phase 1**: logic:
-  1.  Scans all sources.
+  1.  Scans all sources for selected file types.
   2.  Hashes every file (SHA-256).
   3.  Identifies unique files vs duplicates.
-  4.  Determines the best date (EXIF `DateTimeOriginal` > File Modification Time).
+  4.  Determines the best date (EXIF `DateTimeOriginal` / Video Metadata > File Modification Time).
   5.  Builds the "Plan" in the database.
 - **Output**: The database is now "Frozen" and ready for execution.
 

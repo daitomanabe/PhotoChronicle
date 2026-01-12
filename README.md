@@ -8,7 +8,9 @@ PhotoChronicle is a native macOS application (SwiftUI) designed for archiving ma
 
 -   **Deep Scanning**: Recursively scans folders and macOS Photos Library bundles (`.photolibrary/Originals`).
 -   **Content-Addressable Deduplication**: Uses SHA-256 scanning to identify duplicate files regardless of filename.
--   **Structured Archival**: Automatically organizes files into a `YYYY/MM/DD` folder structure based on EXIF data or file modification time.
+-   **Video Support**: Archives video files (MTS, AVI, MOV, MP4, etc.) in addition to photos.
+-   **Selectable Media Types**: Choose to scan only "Images", only "Videos", or both.
+-   **Structured Archival**: Automatically organizes files into a `YYYY/MM/DD` folder structure based on EXIF/Metadata or file modification time.
 -   **Phase 1 (Analysis)**: Scans and builds a "Plan" (SQLite database) safely without modifying any files.
 -   **Phase 2 (Execution)**: Executes the plan with robust safety features:
     -   **Atomic Batch Reservation**: Thread-safe parallel execution logic.
