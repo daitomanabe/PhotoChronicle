@@ -15,10 +15,11 @@ final class PlannerViewModel: ObservableObject {
     @Published var lastError: String? = nil
     @Published var isRunning: Bool = false
 
-    private var task: Task<Void, Never>? = nil
+    @Published var scanImages: Bool = true
+    @Published var scanVideos: Bool = true
 
     var canStart: Bool {
-        !isRunning && !sources.isEmpty && destFolder != nil
+        !isRunning && !sources.isEmpty && destFolder != nil && (scanImages || scanVideos)
     }
 
     func bootstrap() {
@@ -28,245 +29,7 @@ final class PlannerViewModel: ObservableObject {
         }
     }
 
-    func defaultPlanDBURL() -> URL {
-        let fm = FileManager.default
-        let base = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let dir = base.appendingPathComponent("PhotoChronicle", isDirectory: true)
-        try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
-        let ts = ISO8601DateFormatter().string(from: Date()).replacingOccurrences(
-            of: ":", with: "-")
-        return dir.appendingPathComponent("plan-\(ts).sqlite")
-    }
-
-    // MARK: - Source management
-
-    func addSources(from urls: [URL]) {
-        guard !isRunning else { return }
-        lastError = nil
-
-        for url in urls {
-            let resolved = url.resolvingSymlinksInPath()
-            guard FileManager.default.fileExists(atPath: resolved.path) else { continue }
-
-            if isLibraryURL(resolved) {
-                addSource(kind: .library, url: resolved)
-            } else if resolved.hasDirectoryPath {
-                addSource(kind: .folder, url: resolved)
-            } else {
-                // ignore file drops for now (can be extended)
-                log("Ignored non-folder: \(resolved.path)")
-            }
-        }
-    }
-
-    private func addSource(kind: SourceKind, url: URL) {
-        if sources.contains(where: { $0.url.standardizedFileURL == url.standardizedFileURL }) {
-            return
-        }
-        sources.append(SourceItem(kind: kind, url: url))
-        log("Added \(kind.rawValue): \(url.path)")
-    }
-
-    func removeSource(_ s: SourceItem) {
-        guard !isRunning else { return }
-        sources.removeAll { $0.id == s.id }
-    }
-
-    func clearSources() {
-        guard !isRunning else { return }
-        sources.removeAll()
-    }
-
-    private func isLibraryURL(_ url: URL) -> Bool {
-        let ext = url.pathExtension.lowercased()
-        return ext == "photoslibrary" || ext == "photolibrary"
-    }
-
-    // MARK: - Destination
-
-    func setDestinationFromDrop(_ urls: [URL]) {
-        guard !isRunning else { return }
-        guard let first = urls.first else { return }
-        let resolved = first.resolvingSymlinksInPath()
-        var isDir: ObjCBool = false
-        guard FileManager.default.fileExists(atPath: resolved.path, isDirectory: &isDir),
-            isDir.boolValue
-        else {
-            lastError = "Destination must be a folder."
-            return
-        }
-        destFolder = resolved
-        log("Set DEST: \(resolved.path)")
-    }
-
-    func openChooseDestPanel() {
-        guard !isRunning else { return }
-        let p = NSOpenPanel()
-        p.canChooseDirectories = true
-        p.canChooseFiles = false
-        p.allowsMultipleSelection = false
-        p.prompt = "Choose"
-        p.begin { resp in
-            guard resp == .OK, let url = p.url else { return }
-            self.destFolder = url
-            self.log("Set DEST: \(url.path)")
-        }
-    }
-
-    func openAddSourcesPanel() {
-        guard !isRunning else { return }
-        let p = NSOpenPanel()
-        p.canChooseDirectories = true
-        p.canChooseFiles = true
-        p.allowsMultipleSelection = true
-        p.prompt = "Add"
-        p.begin { resp in
-            guard resp == .OK else { return }
-            self.addSources(from: p.urls)
-        }
-    }
-
-    func openChooseDBPanel(merging: Bool = false) {
-        guard !isRunning else { return }
-
-        if planMode == .new && !merging {
-            let p = NSSavePanel()
-            p.allowedContentTypes = []
-            p.nameFieldStringValue = planDBURL?.lastPathComponent ?? "plan.sqlite"
-            p.prompt = "Create"
-            p.message = "Create a new plan database (will overwrite if exists)."
-            p.begin { resp in
-                guard resp == .OK, let url = p.url else { return }
-                self.planDBURL = url
-                self.log("Set Plan DB (New): \(url.path)")
-                self.resetProgress()
-            }
-        } else {
-            let p = NSOpenPanel()
-            p.allowedContentTypes = []
-            p.canChooseFiles = true
-            p.canChooseDirectories = false
-            p.allowsMultipleSelection = false
-            p.prompt = merging ? "Append" : "Select"
-            p.message =
-                merging
-                ? "Select a plan.sqlite to merge operations from." : "Select a plan.sqlite to load."
-
-            p.begin { resp in
-                guard resp == .OK, let url = p.url else { return }
-
-                if merging {
-                    self.loadOrMergePlan(url: url)
-                } else {
-                    // Force replace
-                    self.planDBURL = url
-                    self.log("Set Plan DB (Load): \(url.path)")
-                    if FileManager.default.fileExists(atPath: url.path) {
-                        self.loadPlan()
-                    }
-                }
-            }
-        }
-    }
-
-    func resetProgress() {
-        self.progress = PlannerProgress(stage: .idle)
-    }
-
-    func loadOrMergePlan(url: URL) {
-        if let currentURL = planDBURL {
-            // MERGE
-            self.log("Attempting to MERGE ops from: \(url.path)")
-            do {
-                let db = try PlanDB(dbURL: currentURL)
-                let count = try db.mergeOpsFrom(otherDBPath: url.path)
-                self.log("Successfully merged \(count) pending ops from secondary plan.")
-
-                // Refresh metrics
-                self.progress.hashedFiles += 0  // or track newly added?
-                // we should re-query pending ops count ideally
-                let pending = try db.pendingOpsCount()
-                self.log("Total Pending Ops after merge: \(pending)")
-
-            } catch {
-                self.log("Failed to merge plan: \(error.localizedDescription)")
-            }
-        } else {
-            // LOAD
-            self.planDBURL = url
-            self.log("Set Plan DB (Load): \(url.path)")
-            if FileManager.default.fileExists(atPath: url.path) {
-                self.loadPlan()
-            }
-        }
-    }
-
-    func loadPlan() {
-        guard let url = planDBURL else { return }
-        do {
-            let db = try PlanDB(dbURL: url)  // will apply schema if needed
-
-            // Load dest
-            let (uuid, root, state) = try db.readPlanInfo()
-            if let uuid = uuid {
-                if let r = VolumeResolver.mountURL(forVolumeUUID: uuid) {
-                    let dest = r.appendingPathComponent(root ?? "")
-                    self.destFolder = dest
-                    self.log("Loaded DEST from plan: \(dest.path) (State: \(state ?? "N/A"))")
-                } else {
-                    self.log("WARN: Plan destination volume (UUID=\(uuid)) is not mounted.")
-                }
-            }
-
-            // If FROZEN, ensure we are in a state that allows Phase 2?
-            // For now just logging. The UI checks phase2 presence or just button availability.
-            if state == "FROZEN" {
-                // Potentially auto-switch tab or enable Phase 2 button
-            }
-
-            // Load sources
-            let loadedSources = try db.readSources()
-            var count = 0
-            for (kindStr, path) in loadedSources {
-                let u = URL(fileURLWithPath: path)
-                if !sources.contains(where: { $0.url.path == u.path }) {
-                    let k: SourceKind = (kindStr == "LIBRARY") ? .library : .folder
-                    sources.append(SourceItem(kind: k, url: u))
-                    count += 1
-                }
-            }
-            if count > 0 {
-                self.log("Loaded \(count) sources from plan.")
-            }
-
-            // Update metrics
-            let stats = try db.readStats()
-            self.progress.hashedFiles = stats.hashed
-            self.progress.uniqueBlobs = stats.unique
-            self.progress.duplicateCount = stats.hashed - stats.unique  // approx
-
-            // CHECK & REPAIR: Ensure ops table exists
-            let totalOps = try db.totalOpsCount()
-            if stats.unique > 0 && totalOps == 0 {
-                self.log("WARN: Operations table missing or empty. Repairing plan...")
-                try db.buildOpsTable()
-                self.log("Plan repaired. Operations generated.")
-            } else if totalOps > 0 {
-                let pending = try db.pendingOpsCount()
-                if pending == 0 {
-                    self.log("NOTE: Plan appears fully executed (0 pending ops).")
-                }
-            }
-
-        } catch {
-            self.log("Failed to load plan: \(error.localizedDescription)")
-        }
-    }
-
-    func revealPlanDBInFinder() {
-        guard let url = planDBURL else { return }
-        NSWorkspace.shared.activateFileViewerSelecting([url])
-    }
+    // ... (existing methods until startPhase1) ...
 
     // MARK: - Phase 1
 
@@ -286,6 +49,10 @@ final class PlannerViewModel: ObservableObject {
         let currentSources = sources
         let mode = planMode
 
+        // Capture flags for task
+        let doImages = scanImages
+        let doVideos = scanVideos
+
         var lastLoggedCount = 0
 
         Task {
@@ -296,6 +63,8 @@ final class PlannerViewModel: ObservableObject {
                     sources: currentSources,
                     destFolder: dest,
                     dbURL: dbURL,
+                    includeImages: doImages,
+                    includeVideos: doVideos,
                     progress: { [weak self] p in
                         await MainActor.run {
                             self?.progress = p

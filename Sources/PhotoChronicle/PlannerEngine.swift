@@ -12,10 +12,11 @@ import Foundation
 /// and more sophisticated filtering (and perhaps lower-level directory enumeration).
 struct PlannerEngine {
 
-    // Candidate extensions (images only)
-    private let imageExts: Set<String> = [
+    // Candidate extensions (images + videos)
+    private let candidateExts: Set<String> = [
         "jpg", "jpeg", "heic", "heif", "png", "tif", "tiff", "gif", "bmp", "webp",
         "dng", "cr2", "cr3", "nef", "arw", "raf", "orf", "rw2",
+        "mts", "avi", "mov", "mp4", "m4v",
     ]
 
     struct ScanResult: Sendable {
@@ -34,9 +35,15 @@ struct PlannerEngine {
         sources: [SourceItem],
         destFolder: URL,
         dbURL: URL,
+        includeImages: Bool,
+        includeVideos: Bool,
         progress: @escaping @Sendable (PlannerProgress) async -> Void,
         log: @escaping @Sendable (String) async -> Void
     ) async throws {
+
+        var allowedExts: Set<String> = []
+        if includeImages { allowedExts.formUnion(imageExts) }
+        if includeVideos { allowedExts.formUnion(videoExts) }
 
         var prog = PlannerProgress(stage: .scanning)
 
@@ -136,7 +143,7 @@ struct PlannerEngine {
                             guard rv.isRegularFile == true else { continue }
 
                             let ext = fileURL.pathExtension.lowercased()
-                            if !imageExts.contains(ext) { continue }
+                            if !allowedExts.contains(ext) { continue }
 
                             guard let vol = VolumeResolver.volumeInfo(for: fileURL) else {
                                 continue
@@ -258,12 +265,27 @@ struct PlannerEngine {
             // date
             let ymd: String
             let source: String
-            if let exifYMD = exif.exifDateYMD(abs) {
-                ymd = exifYMD
-                source = "EXIF"
+
+            // Check extension primarily for optimization
+            let ext = (c.filename as NSString).pathExtension.lowercased()
+            let isVideo = videoExts.contains(ext)
+
+            if isVideo {
+                if let vYMD = await exif.videoDateYMD(abs) {
+                    ymd = vYMD
+                    source = "VIDEO_META"
+                } else {
+                    ymd = ExifDateExtractor.ymdFromEpochUTC(c.mtime)
+                    source = "MTIME"
+                }
             } else {
-                ymd = ExifDateExtractor.ymdFromEpochUTC(c.mtime)
-                source = "MTIME"
+                if let exifYMD = exif.exifDateYMD(abs) {
+                    ymd = exifYMD
+                    source = "EXIF"
+                } else {
+                    ymd = ExifDateExtractor.ymdFromEpochUTC(c.mtime)
+                    source = "MTIME"
+                }
             }
 
             // build dest path: YYYY/MM/DD/<filename>

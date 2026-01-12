@@ -276,15 +276,23 @@ struct ContentView: View {
                 }
                 Button("Cancel") { vm.cancel() }
             } else {
-                Button(action: { vm.startPhase1() }) {
-                    Text("Start Phase 1")
-                        .font(.body.bold())
-                        .frame(minWidth: 120)
-                        .padding(.vertical, 4)
+                VStack(alignment: .trailing, spacing: 6) {
+                    HStack(spacing: 16) {
+                        Toggle("Images", isOn: $vm.scanImages)
+                        Toggle("Videos", isOn: $vm.scanVideos)
+                    }
+                    .controlSize(.small)
+
+                    Button(action: { vm.startPhase1() }) {
+                        Text("Start Phase 1")
+                            .font(.body.bold())
+                            .frame(minWidth: 120)
+                            .padding(.vertical, 4)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.blue)
+                    .disabled(!vm.canStart || vm.isRunningPhase2)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.blue)
-                .disabled(!vm.canStart || vm.isRunningPhase2)
             }
         }
     }
